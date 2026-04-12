@@ -1,19 +1,19 @@
 import type { WikiOsConfigInput } from "./src/lib/wiki-config";
 
 const config: WikiOsConfigInput = {
-  siteTitle: "WikiOS",
-  tagline: "Plug-and-play Obsidian wiki for search, browsing, and local knowledge graphs.",
-  searchPlaceholder: "Search notes, ideas, and people...",
+  siteTitle: "Ripster Brain",
+  tagline: "Ripster EMA Cloud trading system — research, signals, and trade data.",
+  searchPlaceholder: "Search insights, trades, and knowledge...",
   homepage: {
     labels: {
-      featured: "Discover",
+      featured: "Featured",
       topConnected: "Most Connected",
-      people: "People",
+      people: "Key Voices",
       recentPages: "Recently Added",
     },
   },
   people: {
-    mode: "explicit",
+    mode: "disabled",
   },
 };
 
