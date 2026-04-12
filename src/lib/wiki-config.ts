@@ -19,6 +19,8 @@ export interface WikiOsConfigInput {
   siteTitle?: string;
   tagline?: string;
   searchPlaceholder?: string;
+  /** Only index files inside these folders (relative to vault root). Root-level .md files like index.md are always included. */
+  includeFolders?: string[];
   navigation?: {
     graphLabel?: string;
     statsLabel?: string;
@@ -62,6 +64,7 @@ export interface WikiOsConfig {
   siteTitle: string;
   tagline: string;
   searchPlaceholder: string;
+  includeFolders: string[];
   navigation: {
     graphLabel: string;
     statsLabel: string;
@@ -105,6 +108,7 @@ export const DEFAULT_WIKI_OS_CONFIG: WikiOsConfig = {
   siteTitle: "WikiOS",
   tagline: "Plug-and-play Obsidian wiki for search, browsing, and local knowledge graphs.",
   searchPlaceholder: "Search notes, ideas, and people...",
+  includeFolders: [],
   navigation: {
     graphLabel: "Graph",
     statsLabel: "Stats",
@@ -227,6 +231,9 @@ export function resolveWikiOsConfig(input?: WikiOsConfigInput): WikiOsConfig {
     tagline: input?.tagline?.trim() || DEFAULT_WIKI_OS_CONFIG.tagline,
     searchPlaceholder:
       input?.searchPlaceholder?.trim() || DEFAULT_WIKI_OS_CONFIG.searchPlaceholder,
+    includeFolders: (input?.includeFolders ?? [])
+      .map((f) => f.replace(/\/+$/, ""))
+      .filter(Boolean),
     navigation: {
       graphLabel:
         input?.navigation?.graphLabel?.trim() ||

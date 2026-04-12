@@ -77,6 +77,8 @@ import {
 
 export { WikiSetupRequiredError } from "./wiki-state";
 
+let resolvedIncludeFolders: string[] = [];
+
 function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
@@ -217,7 +219,8 @@ const indexer = createWikiIndexer<SqliteDb, WikiOsConfig>({
   requireIndexDbPath,
   normalizeRelativePath,
   isIgnoredDirectoryName,
-  shouldIndexRelativeFile,
+  shouldIndexRelativeFile: (file: string) =>
+    shouldIndexRelativeFile(file, resolvedIncludeFolders),
   getWikiEnvironmentConfig,
   titleFromFileName,
   slugFromFileName,
@@ -294,6 +297,7 @@ async function ensureIndexReady() {
   if (!wikiCache.initPromise) {
     wikiCache.initPromise = (async () => {
       const config = await getWikiEnvironmentConfig();
+      resolvedIncludeFolders = config.includeFolders;
       await indexer.assertWikiRootAccessible();
       await indexer.ensureDbDirectory();
       const hadExistingArtifacts = await indexer.hasExistingIndexArtifacts();

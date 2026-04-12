@@ -8,7 +8,7 @@ export function isIgnoredDirectoryName(name: string) {
   return name.startsWith("_") || name.startsWith(".");
 }
 
-export function shouldIndexRelativeFile(file: string) {
+export function shouldIndexRelativeFile(file: string, includeFolders?: string[]) {
   if (!file.endsWith(".md")) {
     return false;
   }
@@ -31,6 +31,17 @@ export function shouldIndexRelativeFile(file: string) {
   for (const directory of parts.slice(0, -1)) {
     if (isIgnoredDirectoryName(directory)) {
       return false;
+    }
+  }
+
+  // When includeFolders is set, only allow root-level files or files inside listed folders
+  if (includeFolders && includeFolders.length > 0) {
+    const isRootFile = parts.length === 1;
+    if (!isRootFile) {
+      const topFolder = parts[0];
+      if (!includeFolders.some((f) => topFolder === f)) {
+        return false;
+      }
     }
   }
 
