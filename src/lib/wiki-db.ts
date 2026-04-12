@@ -269,12 +269,60 @@ export function recomputeBacklinkCountsForSlugs(db: SqliteDb, slugs: Iterable<st
   run(uniqueSlugs);
 }
 
+export function resolveBacklinkSlugs(db: SqliteDb) {
+  const unresolvedRows = db
+    .prepare(`
+      SELECT b.rowid, b.target_slug
+      FROM backlinks b
+      WHERE NOT EXISTS (SELECT 1 FROM pages p WHERE p.slug = b.target_slug)
+    `)
+    .all() as Array<{ rowid: number; target_slug: string }>;
+
+  if (unresolvedRows.length === 0) {
+    return 0;
+  }
+
+  const findByBasename = db.prepare(
+    "SELECT slug FROM pages WHERE slug LIKE '%/' || ? OR slug = ? LIMIT 1",
+  );
+  const updateSlug = db.prepare("UPDATE backlinks SET target_slug = ? WHERE rowid = ?");
+
+  const resolvedSlugs = new Set<string>();
+
+  const run = db.transaction(() => {
+    let resolved = 0;
+    for (const row of unresolvedRows) {
+      const match = findByBasename.get(row.target_slug, row.target_slug) as
+        | { slug: string }
+        | undefined;
+      if (match) {
+        updateSlug.run(match.slug, row.rowid);
+        resolvedSlugs.add(match.slug);
+        resolved += 1;
+      }
+    }
+    return resolved;
+  });
+
+  const count = run();
+
+  if (resolvedSlugs.size > 0) {
+    recomputeBacklinkCountsForSlugs(db, resolvedSlugs);
+  }
+
+  return count;
+}
+
 export function upsertPageRecord(db: SqliteDb, page: IndexedWikiPageRecord) {
   const previousPage = db
     .prepare("SELECT slug FROM pages WHERE file = ?")
     .get(page.file) as { slug: string } | undefined;
   const previousTargets = getSourceTargets(db, page.file);
   const backlinkTargets = aggregateBacklinkReferences(page.backlinkReferences);
+
+  const resolveSlug = db.prepare(
+    "SELECT slug FROM pages WHERE slug = ? OR slug LIKE '%/' || ? LIMIT 1",
+  );
 
   const upsert = db.transaction(() => {
     db.prepare(`
@@ -333,7 +381,8 @@ export function upsertPageRecord(db: SqliteDb, page: IndexedWikiPageRecord) {
       VALUES (?, ?, ?, ?)
     `);
     for (const [targetSlug, target] of backlinkTargets) {
-      insertBacklink.run(page.file, target.targetRaw, targetSlug, target.count);
+      const resolved = resolveSlug.get(targetSlug, targetSlug) as { slug: string } | undefined;
+      insertBacklink.run(page.file, target.targetRaw, resolved?.slug ?? targetSlug, target.count);
     }
 
     db.prepare("DELETE FROM pages_fts WHERE file = ?").run(page.file);

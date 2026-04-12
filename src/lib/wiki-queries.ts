@@ -6,6 +6,7 @@ import {
   countTermOccurrences,
 } from "./wiki-classification";
 import { getTopicEmoji, getTopicLabel, isTopicHidden, type WikiOsConfig } from "./wiki-config";
+import { hasDataviewBlocks, processDataviewBlocks } from "./wiki-dataview";
 import {
   type CategoryInfo,
   type GraphData,
@@ -95,6 +96,7 @@ export interface WikiQueryDependencies {
   getCacheState(): WikiQueryCacheState;
   getPeriodicReconcileIntervalMs(): number | null;
   getIndexDbPath(): string;
+  getWikiRoot(): string;
   recordIntegrityCheck(ok: boolean, error?: string | null): void;
   formatError(error: unknown, fallback: string): string;
 }
@@ -522,7 +524,7 @@ export async function getWikiPage(
 
   const canonicalSlug = await canonicalSlugFromRouteParts(slugParts);
   const db = deps.getDb();
-  const row = db
+  let row = db
     .prepare(`
       SELECT
         file,
@@ -538,6 +540,26 @@ export async function getWikiPage(
       WHERE slug = ?
     `)
     .get(canonicalSlug) as WikiPageRow | undefined;
+
+  if (!row) {
+    // Fallback: try matching by basename (e.g. "LIVE_TRADES" → "Karpster/LIVE_TRADES")
+    const basename = canonicalSlug.split("/").pop() ?? canonicalSlug;
+    row = db
+      .prepare(`
+        SELECT
+          file, slug, title,
+          content_markdown AS contentMarkdown,
+          has_code_blocks AS hasCodeBlocks,
+          headings_json AS headingsJson,
+          modified_at AS modifiedAt,
+          category_names_json AS categoryNamesJson,
+          is_person AS isPerson
+        FROM pages
+        WHERE slug LIKE '%/' || ? OR slug = ?
+        LIMIT 1
+      `)
+      .get(basename, basename) as WikiPageRow | undefined;
+  }
 
   if (!row) {
     throw new Error("Wiki page not found");
@@ -579,11 +601,15 @@ export async function getWikiPage(
 
   const cache = deps.getCacheState();
 
+  const contentMarkdown = hasDataviewBlocks(row.contentMarkdown)
+    ? processDataviewBlocks(row.contentMarkdown, deps.getWikiRoot(), row.file)
+    : row.contentMarkdown;
+
   return {
     slug: row.slug,
     title: row.title,
     fileName: row.file,
-    contentMarkdown: row.contentMarkdown,
+    contentMarkdown,
     hasCodeBlocks: row.hasCodeBlocks === 1,
     headings: parseJsonArray<WikiHeading>(row.headingsJson),
     modifiedAt: row.modifiedAt,

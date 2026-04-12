@@ -190,9 +190,12 @@ export async function loadIndexedWikiPage<TConfig>(
     ]);
 
     const config = await deps.getWikiEnvironmentConfig();
-    const title = deps.titleFromFileName(file);
-    const titleLower = title.toLowerCase();
     const { data: frontmatter, body } = deps.parseWikiFrontmatter(markdown);
+    const title =
+      typeof frontmatter.title === "string" && frontmatter.title.trim()
+        ? frontmatter.title.trim()
+        : deps.titleFromFileName(file);
+    const titleLower = title.toLowerCase();
     const prepared = deps.prepareWikiMarkdown(body);
     const categoryNames = deps.deriveCategoryNames(
       file,

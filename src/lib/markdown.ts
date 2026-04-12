@@ -1,6 +1,10 @@
 import { type WikiHeading, slugFromFileName } from "./wiki-shared";
 
 export function wikilinkHref(target: string) {
+  // Folder-style links like [[Karpster/]] → resolve to folder README
+  if (target.endsWith("/")) {
+    return `/wiki/${slugFromFileName(`${target}README.md`)}`;
+  }
   return `/wiki/${slugFromFileName(`${target}.md`)}`;
 }
 

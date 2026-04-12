@@ -17,6 +17,7 @@ import {
 import {
   deletePageByFile,
   openIndexDb,
+  resolveBacklinkSlugs,
   runDbMigrations,
   runStartupIntegrityCheck,
   seedCategoryRules,
@@ -135,8 +136,11 @@ function getWatcherController() {
       assertWikiRootAccessible: () => indexer.assertWikiRootAccessible(),
       requireWikiRoot,
       ensureIndexReady,
-      reconcileIndexWithDisk: (options) =>
-        indexer.reconcileIndexWithDisk(options as { source?: SyncSource | null }),
+      reconcileIndexWithDisk: async (options) => {
+        const result = await indexer.reconcileIndexWithDisk(options as { source?: SyncSource | null });
+        resolveBacklinkSlugs(requireDb());
+        return result;
+      },
       syncSinglePath: (relativePath) => indexer.syncSinglePath(relativePath),
       recordSyncSuccess,
       recordSyncError,
@@ -256,6 +260,7 @@ const queries = createWikiQueries({
   getCacheState: () => wikiCache,
   getPeriodicReconcileIntervalMs: () => getWatcherController().getPeriodicReconcileIntervalMs(),
   getIndexDbPath: requireIndexDbPath,
+  getWikiRoot: requireWikiRoot,
   recordIntegrityCheck,
   formatError: errorMessage,
 });
@@ -341,12 +346,14 @@ async function ensureIndexReady() {
 
           wikiCache.db = db;
           await indexer.reconcileIndexWithDisk({ forceAll: true, source: "startup" });
+          resolveBacklinkSlugs(db);
         } else {
           runDbMigrations(db, { cacheVersion: CACHE_VERSION });
           seedCategoryRules(db, buildCategorySeeds(config));
 
           wikiCache.db = db;
           await indexer.reconcileIndexWithDisk({ source: "startup" });
+          resolveBacklinkSlugs(db);
         }
 
         void getWatcherController().startWikiWatcher();
@@ -378,6 +385,7 @@ export async function reindexWikiSnapshot() {
   wikiCache.pendingFullReconcile = false;
 
   await indexer.reconcileIndexWithDisk({ forceAll: true, source: "reindex" });
+  resolveBacklinkSlugs(requireDb());
   const derived = await queries.getDerivedData();
   return derived.stats;
 }
