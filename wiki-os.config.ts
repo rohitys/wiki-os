@@ -13,7 +13,7 @@ const config: WikiOsConfigInput = {
     },
   },
   people: {
-    mode: "disabled",
+    mode: "off",
   },
 };
 
