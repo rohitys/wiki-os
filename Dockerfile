@@ -15,7 +15,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# --no-optional skips platform-specific WASM fallbacks (@napi-rs/*) that
+# carry bundleDependencies npm ci can't reconcile; we're on linux-x64-glibc
+# and only need native prebuilds.
+RUN npm ci --no-optional
 
 COPY . .
 RUN npm run build
