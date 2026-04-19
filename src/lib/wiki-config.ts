@@ -40,6 +40,7 @@ export interface WikiOsConfigInput {
       statsEyebrow?: string;
       statsDescription?: string;
     };
+    customStats?: Array<{ label: string; value: string }>;
   };
   theme?: {
     variables?: Record<string, string>;
@@ -84,6 +85,7 @@ export interface WikiOsConfig {
       statsEyebrow: string;
       statsDescription: string;
     };
+    customStats: Array<{ label: string; value: string }>;
   };
   theme: {
     variables: Record<string, string>;
@@ -128,6 +130,7 @@ export const DEFAULT_WIKI_OS_CONFIG: WikiOsConfig = {
       statsEyebrow: "Wiki Snapshot",
       statsDescription: "A live view of the Obsidian wiki index and backlink graph.",
     },
+    customStats: [],
   },
   theme: {
     variables: {},
@@ -282,6 +285,19 @@ export function resolveWikiOsConfig(input?: WikiOsConfigInput): WikiOsConfig {
           input?.homepage?.labels?.statsDescription?.trim() ||
           DEFAULT_WIKI_OS_CONFIG.homepage.labels.statsDescription,
       },
+      customStats: (Array.isArray(input?.homepage?.customStats)
+        ? input!.homepage!.customStats!
+        : DEFAULT_WIKI_OS_CONFIG.homepage.customStats
+      ).flatMap((stat) => {
+        if (!stat || typeof stat !== "object") return [];
+        const label = typeof (stat as { label?: unknown }).label === "string"
+          ? (stat as { label: string }).label.trim()
+          : "";
+        const value = typeof (stat as { value?: unknown }).value === "string"
+          ? (stat as { value: string }).value.trim()
+          : "";
+        return label && value ? [{ label, value }] : [];
+      }),
     },
     theme: {
       variables: { ...DEFAULT_WIKI_OS_CONFIG.theme.variables, ...input?.theme?.variables },
