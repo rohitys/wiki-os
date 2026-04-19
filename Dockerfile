@@ -15,10 +15,11 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-# --no-optional skips platform-specific WASM fallbacks (@napi-rs/*) that
-# carry bundleDependencies npm ci can't reconcile; we're on linux-x64-glibc
-# and only need native prebuilds.
-RUN npm ci --no-optional
+# npm install (not npm ci) — npm ci strict-validates bundleDependencies inside
+# optional @napi-rs/* WASM fallbacks and refuses to run. npm install is looser
+# and still uses the lockfile for versions. Rollup needs @rollup/rollup-linux-x64-gnu
+# (a platform-specific optional), so we can't use --no-optional.
+RUN npm install --no-audit --no-fund
 
 COPY . .
 RUN npm run build
