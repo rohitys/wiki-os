@@ -125,10 +125,7 @@ export function SearchBox({
         <div className="topbar-inner">
           <Link to="/" className="brand" onClick={hasQuery ? (e) => { e.preventDefault(); resetSearch(); } : undefined}>
             <span className="brand-mark" />
-            <div>
-              <div className="brand-name">{config.siteTitle}</div>
-              <div className="brand-sub">Wiki</div>
-            </div>
+            <div className="brand-name">{config.siteTitle}</div>
           </Link>
 
           {/* Inline search */}
