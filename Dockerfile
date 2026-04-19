@@ -5,7 +5,7 @@
 # The secret is never written to an image layer.
 
 # ── Builder ────────────────────────────────────────────────────────────────────
-FROM node:22-slim AS builder
+FROM node:24-slim AS builder
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -29,7 +29,7 @@ RUN --mount=type=secret,id=github_token \
     rm -rf /app/vault/.git
 
 # ── Runtime ────────────────────────────────────────────────────────────────────
-FROM node:22-slim AS runtime
+FROM node:24-slim AS runtime
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates && \
