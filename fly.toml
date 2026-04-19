@@ -1,0 +1,31 @@
+app = "ripster-wiki"
+primary_region = "iad"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "5211"
+  WIKIOS_OPEN_BROWSER = "0"
+  WIKIOS_DISABLE_WATCH = "1"
+  WIKI_ROOT = "/app/vault"
+  WIKIOS_INDEX_DB = "/app/index/wiki.sqlite"
+
+[http_service]
+  internal_port = 5211
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "15s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
