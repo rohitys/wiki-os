@@ -175,8 +175,12 @@ function NeighborhoodGraph({
       ctx.scale(dpr, dpr);
       const nodes = computeScatteredLayout(currentTitle, currentCategories, neighbors, w, h, aliases);
       layoutRef.current = nodes;
-      // Use CSS var for background — parse from computed style
+      // Use CSS vars so the graph adapts to light/dark theme.
       const bg = getComputedStyle(document.documentElement).getPropertyValue("--paper-2").trim() || "#f0f0f0";
+      const isDark = document.documentElement.dataset.theme === "dark";
+      // In dark mode, use a light neutral so edges/labels are readable on the dark paper.
+      const edgeRgb = isDark ? "230,230,240" : "128,128,128";
+      const labelRgb = isDark ? "240,240,245" : "128,128,128";
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
       const center = nodes[0];
@@ -185,8 +189,10 @@ function NeighborhoodGraph({
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
         ctx.lineTo(n.x, n.y);
-        ctx.strokeStyle = hoveredIdx === i ? "rgba(128,128,128,0.3)" : "rgba(128,128,128,0.12)";
-        ctx.lineWidth = hoveredIdx === i ? 1 : 0.5;
+        ctx.strokeStyle = hoveredIdx === i
+          ? `rgba(${edgeRgb},${isDark ? 0.55 : 0.3})`
+          : `rgba(${edgeRgb},${isDark ? 0.28 : 0.12})`;
+        ctx.lineWidth = hoveredIdx === i ? 1 : 0.6;
         ctx.stroke();
       }
       for (let i = nodes.length - 1; i >= 0; i--) {
@@ -201,7 +207,9 @@ function NeighborhoodGraph({
         ctx.fillStyle = n.color; ctx.fill();
         if (n.isCenter || isHovered) {
           ctx.font = `${n.isCenter ? "500" : "400"} ${n.isCenter ? 9 : 8}px "Inter", sans-serif`;
-          ctx.fillStyle = n.isCenter ? "rgba(128,128,128,0.8)" : "rgba(128,128,128,0.6)";
+          ctx.fillStyle = n.isCenter
+            ? `rgba(${labelRgb},${isDark ? 0.95 : 0.8})`
+            : `rgba(${labelRgb},${isDark ? 0.78 : 0.6})`;
           ctx.textAlign = "center";
           ctx.fillText(n.title.length > 20 ? n.title.slice(0, 18) + "…" : n.title, n.x, n.y + drawSize + 11);
         }
@@ -321,10 +329,7 @@ export function Component() {
         <div className="topbar-inner">
           <Link to="/" className="brand">
             <span className="brand-mark" />
-            <div>
-              <div className="brand-name">{config.siteTitle}</div>
-              <div className="brand-sub">Wiki</div>
-            </div>
+            <div className="brand-name">{config.siteTitle}</div>
           </Link>
           <div style={{ flex: 1 }} />
           <div className="top-meta">
