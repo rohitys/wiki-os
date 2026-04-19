@@ -12,6 +12,11 @@ const config: WikiOsConfigInput = {
       people: "Key Voices",
       recentPages: "Recently Added",
     },
+    customStats: [
+      { label: "Runs", value: "97" },
+      { label: "Tickers", value: "15" },
+      { label: "Phase", value: "13B" },
+    ],
   },
   people: {
     mode: "off",
