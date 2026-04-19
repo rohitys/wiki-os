@@ -20,6 +20,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
+# Prune dev deps before copying node_modules into the runtime stage.
+RUN npm prune --omit=dev
+
 # Clone the private vault. BuildKit secret is mounted only for this RUN step.
 RUN --mount=type=secret,id=github_token \
     GITHUB_TOKEN="$(cat /run/secrets/github_token)" && \
@@ -44,9 +47,8 @@ ENV NODE_ENV=production \
     WIKI_ROOT=/app/vault \
     WIKIOS_INDEX_DB=/app/index/wiki.sqlite
 
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
+COPY --from=builder /app/package.json /app/package-lock.json ./
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/dist-server ./dist-server
 COPY --from=builder /app/vault /app/vault
