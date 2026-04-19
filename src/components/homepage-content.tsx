@@ -2,29 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useWikiConfig } from "@/client/wiki-config";
+import { CAT_TYPES, type CatType, getCatTypeFromFile } from "@/lib/cat-type";
 import { type HomepageData, type PageSummary } from "@/lib/wiki-shared";
-
-/* ── Category → design type mapping ── */
-const CAT_TYPES = ["Project", "Knowledge", "Insights", "Tooling"] as const;
-type CatType = (typeof CAT_TYPES)[number];
-
-function getCatType(name: string): CatType {
-  const n = name.toLowerCase();
-  if (n.includes("karpster") || n.includes("project") || n.includes("ripster")) return "Project";
-  if (n.includes("io fund") || n.includes("market") || n.includes("research") || n.includes("fund")) return "Knowledge";
-  if (n.includes("insight") || n.includes("misc") || n.includes("up next") || n.includes("idea")) return "Insights";
-  if (n.includes("tool") || n.includes("automation")) return "Tooling";
-  // fallback: deterministic hash
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return CAT_TYPES[h % CAT_TYPES.length] as CatType;
-}
-
-// Derive category type from file path (e.g. "Karpster/foo.md" → "Project")
-function getCatTypeFromFile(file: string): CatType {
-  const folder = file.split("/")[0] ?? "";
-  return getCatType(folder);
-}
 
 /* ── WikiCard ── */
 function WikiCard({ page, catType }: { page: PageSummary; catType: CatType }) {
@@ -102,8 +81,8 @@ export function HomepageContent({ homepage }: { homepage: HomepageData }) {
               <span className="hero-stat-lbl">Sections</span>
             </div>
           )}
-          {(config.homepage.customStats ?? []).map((stat) => (
-            <div key={stat.label} className="hero-stat">
+          {(config.homepage.customStats ?? []).map((stat, idx) => (
+            <div key={`${stat.label}:${stat.value}:${idx}`} className="hero-stat">
               <span className="hero-stat-val">{stat.value}</span>
               <span className="hero-stat-lbl">{stat.label}</span>
             </div>

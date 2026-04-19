@@ -12,6 +12,7 @@ import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";
 
 import { useWikiConfig } from "@/client/wiki-config";
+import { getCatType } from "@/lib/cat-type";
 import { getTopicColor, type TopicAliasConfig } from "@/lib/wiki-config";
 import type { WikiHeading, WikiNeighbor, WikiPageData } from "@/lib/wiki-shared";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -56,20 +57,6 @@ function wordCount(markdown: string) {
   return markdown.trim().split(/\s+/).length;
 }
 
-/* ── Category type helper (mirrors homepage-content) ── */
-const CAT_TYPES = ["Project", "Knowledge", "Insights", "Tooling"] as const;
-type CatType = (typeof CAT_TYPES)[number];
-
-function getCatType(name: string): CatType {
-  const n = name.toLowerCase();
-  if (n.includes("karpster") || n.includes("project") || n.includes("ripster")) return "Project";
-  if (n.includes("io fund") || n.includes("market") || n.includes("research") || n.includes("fund")) return "Knowledge";
-  if (n.includes("insight") || n.includes("misc") || n.includes("up next") || n.includes("idea")) return "Insights";
-  if (n.includes("tool") || n.includes("automation")) return "Tooling";
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return CAT_TYPES[h % CAT_TYPES.length] as CatType;
-}
 
 /* ── Section splitting ── */
 interface ParsedLink { label: string; href: string; }
@@ -300,7 +287,8 @@ export function Component() {
   const { mainContent, relatedLinks } = splitContentSections(page.contentMarkdown);
   const peopleControlsEnabled = config.people.mode !== "off";
   const personActionBusy = isUpdatingPerson || revalidationState === "loading";
-  const catType = getCatType(page.categories?.[0] ?? "");
+  const primaryCategory = page.categories?.[0];
+  const catType = primaryCategory ? getCatType(primaryCategory) : null;
 
   const personPrimaryLabel =
     page.personOverride === "not-person" || (!page.isPerson && page.personOverride === null)
@@ -366,8 +354,12 @@ export function Component() {
 
           {/* Meta bar */}
           <div className="article-meta">
-            <span className="cat-pill" data-cat={catType}>{catType}</span>
-            <span className="article-meta-sep">·</span>
+            {catType && (
+              <>
+                <span className="cat-pill" data-cat={catType}>{catType}</span>
+                <span className="article-meta-sep">·</span>
+              </>
+            )}
             <span>{readTime} min read</span>
             <span className="article-meta-sep">·</span>
             <span>{words.toLocaleString()} words</span>

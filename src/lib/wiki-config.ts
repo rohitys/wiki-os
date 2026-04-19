@@ -286,11 +286,12 @@ export function resolveWikiOsConfig(input?: WikiOsConfigInput): WikiOsConfig {
           DEFAULT_WIKI_OS_CONFIG.homepage.labels.statsDescription,
       },
       customStats: (input?.homepage?.customStats ?? DEFAULT_WIKI_OS_CONFIG.homepage.customStats)
-        .map((stat) => ({
-          label: stat.label?.trim() ?? "",
-          value: stat.value?.trim() ?? "",
-        }))
-        .filter((stat) => stat.label && stat.value),
+        .flatMap((stat) => {
+          if (!stat || typeof stat !== "object") return [];
+          const label = typeof stat.label === "string" ? stat.label.trim() : "";
+          const value = typeof stat.value === "string" ? stat.value.trim() : "";
+          return label && value ? [{ label, value }] : [];
+        }),
     },
     theme: {
       variables: { ...DEFAULT_WIKI_OS_CONFIG.theme.variables, ...input?.theme?.variables },

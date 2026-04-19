@@ -37,6 +37,12 @@
   --primary-foreground: var(--paper);
   --secondary: var(--paper-2);
   --secondary-foreground: var(--ink);
+  --teal: var(--tag-know);
+  --teal-soft: oklch(0.68 0.09 150 / 0.18);
+  --peach: var(--accent);
+  --peach-soft: var(--accent-wash);
+  --lavender: var(--tag-tool);
+  --lavender-soft: oklch(0.68 0.09 290 / 0.18);
   --font-sans: var(--sans);
   --font-display: var(--serif);
   --font-mono: var(--mono);
@@ -77,6 +83,12 @@
   --primary-foreground: var(--paper);
   --secondary: var(--paper-2);
   --secondary-foreground: var(--ink);
+  --teal: var(--tag-know);
+  --teal-soft: oklch(0.80 0.16 155 / 0.22);
+  --peach: var(--accent);
+  --peach-soft: var(--accent-wash);
+  --lavender: var(--tag-tool);
+  --lavender-soft: oklch(0.78 0.16 300 / 0.22);
 
   color-scheme: dark;
 }

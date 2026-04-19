@@ -25,9 +25,14 @@ function MoonIcon() {
 }
 
 function getInitialTheme(): "light" | "dark" {
+  // Prefer the theme already applied to <html> by the inline pre-hydration script
+  // (set from localStorage / prefers-color-scheme before React mounts).
+  // Falling back to localStorage here would race the inline script and flicker.
+  if (typeof document !== "undefined") {
+    const applied = document.documentElement.getAttribute("data-theme");
+    if (applied === "dark" || applied === "light") return applied;
+  }
   try {
-    const saved = localStorage.getItem("ripsterwiki:theme");
-    if (saved === "dark" || saved === "light") return saved;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   } catch {
     return "light";
@@ -47,9 +52,17 @@ export function ThemeToggle() {
   }, [theme]);
 
   const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
+  const label = theme === "dark" ? "Switch to light theme" : "Switch to dark theme";
 
   return (
-    <button type="button" className="theme-toggle" onClick={toggle} title="Toggle theme">
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={toggle}
+      title={label}
+      aria-label={label}
+      aria-pressed={theme === "dark"}
+    >
       {theme === "dark" ? <SunIcon /> : <MoonIcon />}
     </button>
   );
