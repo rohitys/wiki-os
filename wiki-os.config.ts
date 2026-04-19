@@ -1,7 +1,7 @@
 import type { WikiOsConfigInput } from "./src/lib/wiki-config";
 
 const config: WikiOsConfigInput = {
-  siteTitle: "Ripster Brain",
+  siteTitle: "Ripster Wiki",
   tagline: "Ripster EMA Cloud trading system — research, signals, and trade data.",
   searchPlaceholder: "Search insights, trades, and knowledge...",
   includeFolders: ["IO Fund", "Karpster", "Misc", "Up next Ideas"],

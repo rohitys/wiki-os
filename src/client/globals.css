@@ -290,6 +290,11 @@ header, button, [role="button"] {
 .home-hero {
   padding: 56px 0 36px;
   border-bottom: 1px solid var(--rule);
+  text-align: center;
+}
+
+.home-hero .hero-stats {
+  justify-content: center;
 }
 
 .home-hero h1 {
