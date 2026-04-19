@@ -4,7 +4,6 @@ export const CAT_TYPES = ["Project", "Knowledge", "Insights", "Tooling"] as cons
 export type CatType = (typeof CAT_TYPES)[number];
 
 export function getCatType(name: string): CatType {
-  if (!name) return "Project";
   const n = name.toLowerCase();
   if (n.includes("karpster") || n.includes("project") || n.includes("ripster")) return "Project";
   if (n.includes("io fund") || n.includes("market") || n.includes("research") || n.includes("fund")) return "Knowledge";

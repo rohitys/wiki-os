@@ -81,8 +81,8 @@ export function HomepageContent({ homepage }: { homepage: HomepageData }) {
               <span className="hero-stat-lbl">Sections</span>
             </div>
           )}
-          {(config.homepage.customStats ?? []).map((stat, idx) => (
-            <div key={`${stat.label}:${stat.value}:${idx}`} className="hero-stat">
+          {(config.homepage.customStats ?? []).map((stat) => (
+            <div key={`${stat.label}:${stat.value}`} className="hero-stat">
               <span className="hero-stat-val">{stat.value}</span>
               <span className="hero-stat-lbl">{stat.label}</span>
             </div>

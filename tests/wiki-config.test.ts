@@ -31,6 +31,16 @@ describe("resolveWikiOsConfig — customStats", () => {
     expect(resolved.homepage.customStats).toEqual([{ label: "Phase", value: "13B" }]);
   });
 
+  it("falls back to defaults when customStats is not an array", () => {
+    const resolved = resolveWikiOsConfig({
+      homepage: {
+        customStats: "not-an-array" as unknown as { label: string; value: string }[],
+      },
+    });
+    // Defaults contain no entries, so the resolved list is empty — importantly, no throw
+    expect(resolved.homepage.customStats).toEqual([]);
+  });
+
   it("survives malformed entries without throwing", () => {
     const resolved = resolveWikiOsConfig({
       homepage: {
